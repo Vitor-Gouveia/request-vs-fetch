@@ -1,0 +1,17 @@
+{
+  "name": "request-vs-fetch",
+  "description": "See how request compares against fetch adapter.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vitor-Gouveia/request-vs-fetch.git"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "request": "^2.88.2"
+  }
+}
