@@ -18,102 +18,93 @@ const options = {
 }
 
 function requestFake(options, callback) {
-  let status
-  let headers
-  let resp
-  
-  if(!callback) {
+  let status;
+  let headers;
+  let err;
+
+  if (!callback) {
     return new Promise((resolve, reject) => {
       fetch(options.url, {
         headers: {
           ...(options.json && { 'Content-Type': 'application/json' }),
           ...(options.headers && options.headers),
-          "User-Agent": "fetch api"
         },
         method: options.method,
         ...(options.body && { body: JSON.stringify(options.body) })
       })
-        .catch(error => {
-          return reject(error)
+        .catch((error) => {
+          // caso haja algum erro na chamada fetch(), mas não chegou no servidor
+          err = error;
         })
-        .then(response => {
-          if(response) {
-            headers = response.headers
-            status = response.status
-            resp = response
+        .then((response) => {
+          if (response) {
+            headers = response.headers;
+            status = response.status;
           }
-          
-          if(response && !response.headers.get("content-type").includes("application/json")) {
-            return response.text()
+
+          if (response && response?.headers?.get('content-type')?.includes('text/html')) {
+            return response.text();
           }
-    
-          if(response) {
+
+          if (response && response?.headers?.get('content-type')?.includes('application/json')) {
             return response.json();
           }
         })
-        .then(body => {
-          if (resp && !resp.ok) {
-            // caso o cliente não tenha respondido com 200-299
-            resolve({
-              ...(status && { statusCode: status }),
-              ...(headers && { headers }),
-              ...(body && { body })
-            });
-            return;
+        .catch((error) => {
+          err = error;
+        })
+        .then((body) => {
+          if (err) {
+            return reject(err);
           }
-    
+
           resolve({
             ...(status && { statusCode: status }),
-              ...(headers && { headers }),
-              ...(body && { body })
+            ...(headers && { headers }),
+            ...(body && { body })
           });
         });
-    })
+    });
   }
 
   fetch(options.url, {
     headers: {
-      ...(options.json && { 'Content-Type': 'application/json' }),
-      ...(options.headers && options.headers),
-      "User-Agent": "fetch api"
+      ...(options?.json && { 'Content-Type': 'application/json' }),
+      ...(options?.headers && options.headers),
     },
     method: options.method,
     ...(options.body && { body: JSON.stringify(options.body) })
   })
     .catch((error) => {
       // caso haja algum erro na chamada fetch(), mas não chegou no servidor
-      callback(error);
+      err = error;
     })
     .then((response) => {
-      if(response) {
-        headers = response.headers
-        status = response.status
-        resp = response
-      }
-      
-      if(response && !response.headers.get("content-type").includes("application/json")) {
-        return response.text()
+      if (response) {
+        headers = response.headers;
+        status = response.status;
       }
 
-      if(response) {
+      if (response && response?.headers?.get('content-type')?.includes('text/html')) {
+        return response.text();
+      }
+
+      if (response && response?.headers?.get('content-type')?.includes('application/json')) {
         return response.json();
       }
     })
-    .then(body => {
-      if (resp && !resp.ok) {
-        // caso o cliente não tenha respondido com 200-299
-        callback(null, {
-          ...(status && { statusCode: status }),
-          ...(headers && { headers }),
-          ...(body && { body })
-        });
-        return;
+    .catch((error) => {
+      err = error;
+    })
+    .then((body) => {
+      if (err) {
+        return callback(err);
       }
 
       callback(null, {
         ...(status && { statusCode: status }),
-          ...(headers && { headers }),
-          ...(body && { body })
+        ...(headers && { headers }),
+        ...(body && { body })
       });
     });
 }
